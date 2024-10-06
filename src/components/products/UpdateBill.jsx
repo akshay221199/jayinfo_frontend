@@ -33,7 +33,7 @@ export const UpdateBillForm = ({adminToken}) => {
     useEffect(() => {
         const fetchBillData = async () => {
             try {
-                const response = await fetch(`${BASE_URL}/api/v1/bills/getBillById/${id}`, {
+                const response = await fetch(`https://jayinfo-webapp.onrender.com/api/v1/bills/getBillById/${id}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type':'application/json',
@@ -109,7 +109,7 @@ export const UpdateBillForm = ({adminToken}) => {
         };
 
         try {
-            const response = await fetch(`${BASE_URL}/api/v1/bills/updateBill/${id}`, {
+            const response = await fetch(`https://jayinfo-webapp.onrender.com/api/v1/bills/updateBill/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

@@ -12,7 +12,7 @@ export const PrintBill = ({adminToken}) => {
 
   const fetchBill = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/v1/bills/getBillById/${id}`, {
+      const response = await fetch(`https://jayinfo-webapp.onrender.com/api/v1/bills/getBillById/${id}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${adminToken}`,

@@ -87,7 +87,7 @@ export const BillForm = ({adminToken}) => {
 
         try {
 
-            const response = await fetch(`${BASE_URL}/api/v1/bills/createBill`, {
+            const response = await fetch(`https://jayinfo-webapp.onrender.com/api/v1/bills/createBill`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

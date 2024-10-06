@@ -22,7 +22,7 @@ export const Login = () => {
     const password = e.target.password.value;
 
     try {
-      const response = await fetch('${BASE_URL}/api/v1/admin/loginAdmin', {
+      const response = await fetch('https://jayinfo-webapp.onrender.com/api/v1/admin/loginAdmin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

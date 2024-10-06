@@ -26,7 +26,7 @@ export const DashboardDocs = ({adminToken}) => {
  
   const fetchData = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/v1/bills/getBills`, {
+      const response = await fetch(`https://jayinfo-webapp.onrender.com/api/v1/bills/getBills`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ export const DashboardDocs = ({adminToken}) => {
 
   const handleDelete = async (id) => {
     try {
-      await fetch(`${BASE_URL}/api/v1/bills/deleteBill/${id}`,
+      await fetch(`https://jayinfo-webapp.onrender.com/api/v1/bills/deleteBill/${id}`,
         {
           method: 'DELETE',
           headers: {

@@ -25,7 +25,7 @@ export const BillFile = ({adminToken}) => {
 
     const fetchData = async () => {
         try {
-            const response = await fetch(`${BASE_URL}/api/v1/bills/getBills`, {
+            const response = await fetch(`https://jayinfo-webapp.onrender.com/api/v1/bills/getBills`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
