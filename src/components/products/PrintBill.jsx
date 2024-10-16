@@ -3,10 +3,8 @@ import { useParams } from 'react-router-dom';
 import html2pdf from 'html2pdf.js';
 import words from 'num-to-words';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import BASE_URL from '../coonstant';
 
-
-export const PrintBill = ({adminToken}) => {
+export const PrintBill = ({ adminToken }) => {
   const { id } = useParams();
   const [getItem, setGetItem] = useState(null);
 
@@ -25,6 +23,7 @@ export const PrintBill = ({adminToken}) => {
 
       const result = await response.json();
       setGetItem(result.data.bill);
+      console.log(result.data.bill);
     } catch (error) {
       console.error('Error fetching the invoice:', error);
     }
@@ -34,14 +33,6 @@ export const PrintBill = ({adminToken}) => {
     fetchBill();
   }, [id]);
 
-
-  const calculateTotalAmount = () => {
-    return getItem.products.reduce((total, product) => {
-      return total + product.productPrice * product.productQuantity;
-    }, 0);
-  };
-
-  
   const downloadInvoice = () => {
     const invoice = document.getElementById('invoice');
     const opt = {
@@ -54,16 +45,12 @@ export const PrintBill = ({adminToken}) => {
     html2pdf().from(invoice).set(opt).save();
   };
 
-  const currentYear = new Date().getFullYear();
-  const yearSuffix = `${currentYear.toString().slice(-2)}-${(currentYear + 1).toString().slice(-2)}`;
-
   const convertNumberToWords = (amount) => {
     if (typeof amount === 'number') {
       return words(amount) + ' Only';
     }
     return 'Invalid Amount';
   };
-
 
   if (!getItem) {
     return <div>Loading...</div>;
@@ -73,16 +60,14 @@ export const PrintBill = ({adminToken}) => {
 
   return (
     <React.Fragment>
-      
-
       <div className="container mt-5" id="bill-container">
         <div className="card shadow-lg p-4 mb-5 bg-white rounded" id="invoice">
           <div className="text-center mb-4">
             <h1 className="display-5 font-weight-bold"><b> <u> JAY INFO TECH </u></b> </h1>
             <h5>
               <u>
-              New Reliance Market, Degaon Naka, Solapur 413001 <br />
-              GSTIN/UIN: 27BZFPB3458Q1ZW | State Name: Maharashtra, Code: 13 <br />
+                New Reliance Market, Degaon Naka, Solapur 413001 <br />
+                GSTIN/UIN: 27BZFPB3458Q1ZW | State Name: Maharashtra, Code: 13 <br />
               </u>
               Email: <a href="mailto:jayinfotech20@gmail.com">jayinfotech20@gmail.com</a>
             </h5>
@@ -90,20 +75,19 @@ export const PrintBill = ({adminToken}) => {
 
           <div className="row mb-4">
             <div className="col-md-6">
-              <h5>Invoice No: JIIT/{getItem.products.length > 0 ? String(getItem.products.length).padStart(3, '0') : '001'}/{yearSuffix}</h5>
-              <h5>Dated: 17-Sep-24</h5>
+              <h5>Invoice No: JIIT/{getItem.products.length > 0 ? String(getItem.products.length).padStart(3, '0') : '001'}/24-25</h5>
+              <h5>Dated: {new Date(getItem.createdAt).toLocaleDateString()}</h5>
             </div>
             <div className="col-md-6 text-md-right">
               <b>Buyer Name: {getItem.customerName}</b>
               <br />
-              <text>Buyer Address: {getItem.customerAddress}</text>
-              {/* <p>Other Details: {getItem.otherDetails}</p> */}
+              <p>Buyer Address: {getItem.customerAddress}</p>
             </div>
           </div>
 
           <h3 className="text-center mb-4">Products</h3>
           <div className="table-responsive">
-            <table className="table table-bordered table-hover">
+            <table className="table table-bordered">
               <thead className="thead-dark">
                 <tr>
                   <th>Sr No</th>
@@ -122,7 +106,7 @@ export const PrintBill = ({adminToken}) => {
                       <td>{product.productName}</td>
                       <td>{product.productQuantity} items</td>
                       <td>{product.productPrice.toFixed(2)}</td>
-                      <td>SGST 9% <br /> CGST 9%</td>
+                      <td>SGST 9% / CGST 9%</td>
                       <td>{(product.productPrice * product.productQuantity).toFixed(2)}</td>
                     </tr>
                   ))
@@ -135,20 +119,26 @@ export const PrintBill = ({adminToken}) => {
             </table>
           </div>
 
-          <p className="font-weight-bold">
-            Amount Chargeable (in words): {convertNumberToWords(calculateTotalAmount())}
-          </p>
-          
+          <div className="row mt-4">
+            <div className="col-md-6">
+              <p><strong>Amount Chargeable (in words):</strong> {convertNumberToWords(getItem.totalAmounts)}</p>
+            </div>
+            <div className="col-md-6 text-right">
+              <p><strong>Subtotal:</strong> ₹{subtotal}</p>
+              <p><strong>Total Amount:</strong> ₹{getItem.totalAmounts}</p>
+            </div>
+          </div>
+
           <div className="row mt-4">
             <div className="col-md-6 text-center">
               <p className="font-weight-bold">Customer’s Seal and Signature</p>
               <p>{getItem.customerName}</p>
             </div>
             <div className="col-md-6 text-center">
-              <p className="font-weight-bold">For Jay Info Tech </p>
+              <p className="font-weight-bold">For Jay Info Tech</p>
               <p>
                 Shubham Lavate <br />
-                Digitally signed On 21-09-2024 <br />
+                Digitally signed On {new Date().toLocaleDateString()} <br />
               </p>
               <p className="mt-3">
                 <span>Prepared</span> &nbsp; <span>Verified</span> &nbsp; <span>Authorised</span>
@@ -156,10 +146,7 @@ export const PrintBill = ({adminToken}) => {
             </div>
           </div>
 
-          <p className="text-center font-weight-bold mt-4">
-            
-            This is a Computer Generated Invoice
-          </p>
+          <p className="text-center font-weight-bold mt-4">This is a Computer Generated Invoice</p>
         </div>
 
         <div className="text-center">
@@ -178,12 +165,8 @@ export const PrintBill = ({adminToken}) => {
           #invoice {
             box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
           }
-          .navbar-dark .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: bold;
-          }
-          table {
-            margin-bottom: 20px;
+          .table-bordered th, .table-bordered td {
+            border: 1px solid #dee2e6;
           }
           .btn-primary {
             margin-top: 20px;

@@ -1,12 +1,9 @@
-import React, { useState } from 'react';
-import { Button, Card, Container, TextField, Typography, Grid, IconButton, Divider } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Button, Card, Container, TextField, Typography, Grid, IconButton, Divider, Checkbox, FormControlLabel } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import BASE_URL from '../coonstant';
 
-
-
-export const BillForm = ({adminToken}) => {
+export const BillForm = ({ adminToken }) => {
     const [formData, setFormData] = useState({
         customerName: '',
         customerAddress: '',
@@ -18,24 +15,38 @@ export const BillForm = ({adminToken}) => {
         otherDetails: '',
         products: [{
             productName: '', productDescription: '', productQuantity: 1,
-            productPrice: 0, totalAmounts: '',
+            productPrice: 0, totalAmounts: 0,
         }],
     });
 
-    // const [totalAmount, setTotalAmount] = useState(0); // New state for total amount
+    const [totalAmount, setTotalAmount] = useState(0); // State for total amount
+    const [applyTax, setApplyTax] = useState(false); // State for tax checkbox
 
+    // Function to update the total amount whenever product data or tax changes
+    useEffect(() => {
+        const calculateTotalAmount = () => {
+            const total = formData.products.reduce((sum, product) => {
+                const productTotal = product.productQuantity * product.productPrice;
+                return sum + productTotal;
+            }, 0);
 
-    
+            // If tax checkbox is checked, add 18% tax to the total
+            const totalWithTax = applyTax ? total + total * 0.18 : total;
+            setTotalAmount(totalWithTax);
+        };
 
+        calculateTotalAmount();
+    }, [formData.products, applyTax]); // Dependency on products and tax checkbox
 
-
-    const oncustomerChanger = (e) => {
+    // Function to handle customer information changes
+    const onCustomerChange = (e) => {
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value
-        })
-    }
+            [e.target.name]: e.target.value,
+        });
+    };
 
+    // Function to handle product information changes
     const onProductChange = (index, e) => {
         const updatedProducts = formData.products.map((product, i) =>
             i === index ? { ...product, [e.target.name]: e.target.value } : product
@@ -46,6 +57,7 @@ export const BillForm = ({adminToken}) => {
         });
     };
 
+    // Function to add a new product
     const addProduct = () => {
         setFormData((prevData) => ({
             ...prevData,
@@ -56,13 +68,13 @@ export const BillForm = ({adminToken}) => {
                     productDescription: '',
                     productQuantity: 1,
                     productPrice: 0,
-                    totalAmounts: '', // Add this property to match the structure
+                    totalAmounts: 0,
                 },
             ],
         }));
     };
 
-
+    // Function to remove a product
     const removeProduct = (index) => {
         const updatedProducts = formData.products.filter((_, i) => i !== index);
         setFormData((prevData) => ({
@@ -71,7 +83,7 @@ export const BillForm = ({adminToken}) => {
         }));
     };
 
-
+    // Function to handle form submission
     const fromSubmit = async (e) => {
         e.preventDefault();
 
@@ -83,22 +95,23 @@ export const BillForm = ({adminToken}) => {
                 productPrice: product.productPrice,
                 productDescription: product.productDescription,
             })),
+            taxApplied: applyTax, // Include whether tax is applied in the form data
         };
 
         try {
-
             const response = await fetch(`https://jayinfo-webapp.onrender.com/api/v1/bills/createBill`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${adminToken}`
-
+                    'Authorization': `Bearer ${adminToken}`,
                 },
-                body: JSON.stringify(normalizedFormData)
+                body: JSON.stringify(normalizedFormData),
             });
+
             if (!response.ok) {
                 throw new Error('Failed to generate bill');
             }
+
             const data = await response.json();
             setFormData({
                 customerName: '',
@@ -109,12 +122,19 @@ export const BillForm = ({adminToken}) => {
                 BillDate: '',
                 status: '',
                 otherDetails: '',
-                products: [{ productName: '', productDescription: '', productQuantity: 1, totalAmounts:'', productPrice: 0 }],
+                products: [{ productName: '', productDescription: '', productQuantity: 1, totalAmounts: 0, productPrice: 0 }],
             });
+            setTotalAmount(0); // Reset total amount after submission
+            setApplyTax(false); // Reset tax checkbox
         } catch (error) {
             console.error(error.message);
         }
-    }
+    };
+
+    // Handle tax checkbox change
+    const handleTaxChange = (e) => {
+        setApplyTax(e.target.checked);
+    };
 
     return (
         <Container component='main' maxWidth="md">
@@ -136,7 +156,7 @@ export const BillForm = ({adminToken}) => {
                                 variant="outlined"
                                 value={formData.customerName}
                                 fullWidth
-                                onChange={oncustomerChanger}
+                                onChange={onCustomerChange}
                                 required
                             />
                         </Grid>
@@ -147,7 +167,7 @@ export const BillForm = ({adminToken}) => {
                                 variant="outlined"
                                 value={formData.customerEmail}
                                 fullWidth
-                                onChange={oncustomerChanger}
+                                onChange={onCustomerChange}
                                 required
                             />
                         </Grid>
@@ -158,7 +178,7 @@ export const BillForm = ({adminToken}) => {
                                 variant="outlined"
                                 value={formData.customerPhone}
                                 fullWidth
-                                onChange={oncustomerChanger}
+                                onChange={onCustomerChange}
                                 required
                             />
                         </Grid>
@@ -169,7 +189,7 @@ export const BillForm = ({adminToken}) => {
                                 variant="outlined"
                                 value={formData.customerAddress}
                                 fullWidth
-                                onChange={oncustomerChanger}
+                                onChange={onCustomerChange}
                                 required
                             />
                         </Grid>
@@ -180,7 +200,7 @@ export const BillForm = ({adminToken}) => {
                                 variant="outlined"
                                 value={formData.BillDate}
                                 fullWidth
-                                onChange={oncustomerChanger}
+                                onChange={onCustomerChange}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -190,7 +210,7 @@ export const BillForm = ({adminToken}) => {
                                 variant="outlined"
                                 value={formData.status}
                                 fullWidth
-                                onChange={oncustomerChanger}
+                                onChange={onCustomerChange}
                             />
                         </Grid>
                         <Grid item xs={8}>
@@ -199,9 +219,9 @@ export const BillForm = ({adminToken}) => {
                                 name="otherDetails"
                                 type="text"
                                 variant="outlined"
-                                value={formData.otherDetails} // Fix: Access product by index
+                                value={formData.otherDetails}
                                 fullWidth
-                                onChange={oncustomerChanger} // Fix: Correctly pass index and event
+                                onChange={onCustomerChange}
                             />
                         </Grid>
                     </Grid>
@@ -218,9 +238,9 @@ export const BillForm = ({adminToken}) => {
                                         label="Product Name"
                                         name="productName"
                                         variant="outlined"
-                                        value={formData.products[index].productName} // Fix: Access product by index
+                                        value={product.productName}
                                         fullWidth
-                                        onChange={(e) => onProductChange(index, e)} // Fix: Correctly pass index and event
+                                        onChange={(e) => onProductChange(index, e)}
                                         required
                                     />
                                 </Grid>
@@ -230,9 +250,9 @@ export const BillForm = ({adminToken}) => {
                                         name="productQuantity"
                                         type="number"
                                         variant="outlined"
-                                        value={formData.products[index].productQuantity} // Fix: Access product by index
+                                        value={product.productQuantity}
                                         fullWidth
-                                        onChange={(e) => onProductChange(index, e)} // Fix: Correctly pass index and event
+                                        onChange={(e) => onProductChange(index, e)}
                                         required
                                     />
                                 </Grid>
@@ -242,9 +262,9 @@ export const BillForm = ({adminToken}) => {
                                         name="productPrice"
                                         type="number"
                                         variant="outlined"
-                                        value={formData.products[index].productPrice} // Fix: Access product by index
+                                        value={product.productPrice}
                                         fullWidth
-                                        onChange={(e) => onProductChange(index, e)} // Fix: Correctly pass index and event
+                                        onChange={(e) => onProductChange(index, e)}
                                         required
                                     />
                                 </Grid>
@@ -254,9 +274,9 @@ export const BillForm = ({adminToken}) => {
                                         name="totalAmounts"
                                         type="number"
                                         variant="outlined"
-                                        value={formData.products[index].totalAmounts} // Fix: Access product by index
+                                        value={product.productQuantity * product.productPrice}
                                         fullWidth
-                                        onChange={(e) => onProductChange(index, e)} // Fix: Correctly pass index and event
+                                        disabled
                                     />
                                 </Grid>
                                 <Grid item xs={8}>
@@ -265,14 +285,12 @@ export const BillForm = ({adminToken}) => {
                                         name="productDescription"
                                         type="text"
                                         variant="outlined"
-                                        value={formData.products[index].productDescription} // Fix: Access product by index
+                                        value={product.productDescription}
                                         fullWidth
-                                        onChange={(e) => onProductChange(index, e)} // Fix: Correctly pass index and event
+                                        onChange={(e) => onProductChange(index, e)}
                                         required
                                     />
                                 </Grid>
-
-
 
                                 <Grid item xs={2} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     {index > 0 && (
@@ -281,28 +299,31 @@ export const BillForm = ({adminToken}) => {
                                         </IconButton>
                                     )}
                                 </Grid>
-
                             </Grid>
-                            <Divider sx={{ marginY: 2 }} />
                         </div>
                     ))}
 
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={addProduct}
-                        startIcon={<AddIcon />}
-                        sx={{ marginTop: 2 }}
-                    >
+                    {/* Add Product Button */}
+                    <Button variant="outlined" onClick={addProduct} startIcon={<AddIcon />}>
                         Add Product
                     </Button>
-                    <Button
-                        variant="contained"
-                        color="secondary"
-                        type="submit"
-                        sx={{ marginTop: 2, marginLeft: 2 }}
-                    >
-                        Submit Bill
+
+                    <Divider sx={{ margin: '20px 0' }} />
+
+                    {/* Tax Checkbox */}
+                    <FormControlLabel
+                        control={<Checkbox checked={applyTax} onChange={handleTaxChange} />}
+                        label="Apply 18% Tax"
+                    />
+
+                    {/* Total Amount */}
+                    <Typography variant="h6" align='right'>
+                        Total Amount: ₹ {totalAmount.toFixed(2)}
+                    </Typography>
+
+                    {/* Submit Button */}
+                    <Button type="submit" variant="contained" color="primary" fullWidth>
+                        Generate Bill
                     </Button>
                 </form>
             </Card>
